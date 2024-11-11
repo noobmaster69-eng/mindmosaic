@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Mosaic - Enhanced Mental Health App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        /* Base Styling */
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            transition: all 0.3s ease-in-out;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height:50vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+        .app-container {
+            display: none;
+            width: 80%;
+            max-width: 400px;
+            background-color: var(--app-bg);
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header {
+            background-color: var(--header-bg);
+            color: var(--header-color);
+            padding: 20px;
+            text-align: center;
+        }
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        h1, h2 {
+            color: var(--text-color-primary);
+            text-align: center;
+        }
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        textarea {
+            width: 100%;
+            height: 50px;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 5px;
+            color: var(--text-color-secondary);
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+        }
+        .ai-output, #activity-result, #journal-status, #mood-status {
+            margin-top: 5px;
+            font-size: 1em;
+            color: var(--text-color-secondary);
+            text-align: center;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--loading-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--loading-text-color);
+        }
+        #loading-screen h1 {
+            font-size: 2.5em;
+            animation: pulse 2s infinite;
+            color: var(--text-color-primary);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #progress-bar-container {
+            width: 80%;
+            background-color: var(--progress-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: var(--progress-color);
+            transition: width 0.3s;
+        }
+
+        /* Dark Mode Colors */
+        :root {
+            --app-bg: #ffffff;
+            --header-bg: #8ecae6;
+            --header-color: #ffffff;
+            --text-color-primary: #4a90e2;
+            --text-color-secondary: #555;
+            --button-bg: #219ebc;
+            --button-color: #ffffff;
+            --button-hover: #023047;
+            --input-bg: #f0f8ff;
+            --border-color: #e0e0e0;
+            --loading-bg: #f0f8ff;
+            --loading-text-color: #333;
+            --progress-bg: #e0e0e0;
+            --progress-color: #4a90e2;
+        }
+        .dark-mode {
+            --app-bg: #1e1e1e;
+            --header-bg: #222;
+            --header-color: #dfe6e9;
+            --text-color-primary: #f5f5f5;
+            --text-color-secondary: #cfd8dc;
+            --button-bg: #555;
+            --button-color: #f5f5f5;
+            --button-hover: #333;
+            --input-bg: #2e2e2e;
+            --border-color: #555;
+            --loading-bg: #121212;
+            --loading-text-color: #eeeeee;
+            --progress-bg: #555;
+            --progress-color: #80deea;
+        }
+        .toggle-dark-mode {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ccc;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Dark Mode Toggle Button -->
+    <div class="toggle-dark-mode" onclick="toggleDarkMode()">🌙 Dark Mode</div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <h1>Mind Mosaic</h1>
+        <p>Loading your experience...</p>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-container" id="app-container">
+        <header class="header">
+            <h1>Mind Mosaic </h1>
+            <p>Your space to unwind, reflect, and connect with AI</p>
+        </header>
+
+        <main>
+            <!-- Guided Activities Section -->
+            <section class="section" id="activities">
+                <h2>Guided Activities</h2>
+                <button onclick="startGuidedActivity()">Start a 5-Minute Breathing Exercise</button>
+                <p id="activity-result"></p>
+            </section>
+
+            <!-- Journal Section -->
+            <section class="section" id="journal">
+                <h2>Daily Journal</h2>
+                <textarea id="journal-entry" placeholder="How are you feeling today?"></textarea>
+                <button onclick="saveJournalEntry()">Save Entry</button>
+                <p id="journal-status"></p>
+            </section>
+
+            <!-- Mood Tracker Section -->
+            <section class="section" id="mood-tracker">
+                <h2>Mood Tracker</h2>
+                <div class="mood-buttons">
+                    <button onclick="trackMood('Happy')">😊 Happy</button>
+                    <button onclick="trackMood('Sad')">😢 Sad</button>
+                    <button onclick="trackMood('Calm')">😌 Calm</button>
+                </div>
+                <p id="mood-status"></p>
+            </section>
+
+            <!-- AI Chat Section -->
+            <section class="section" id="ai-assistant">
+                <h1>Ask AI</h1>
+                <textarea id="ai-input" placeholder="Ask anything..."></textarea>
+                <button onclick="getAIResponse()">Ask</button>
+                <p class="ai-output" id="ai-response"></p>
+            </section>
+           <marquee style="background-color:#000080," direction="left" loop="20" width="75%>">
+           </marquee>
+        </main>
+    </div>
+
+    <script>
+        // Progress bar animation
+        function animateLoading() {
+            let progressBar = document.getElementById('progress-bar');
+            let width = 0;
+            let interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'block';
+                } else {
+                    width += 1;
+                    progressBar.style.width = width + '%';
+                }
+            }, 30);
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        // Load dark mode preference
+        window.onload = () => {
+            animateLoading();
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+        };
+
+        // Original app functionality remains unchanged
+        function getAIResponse() {
+            const userInput = document.getElementById("ai-input").value.toLowerCase();
+            const aiResponses = {
+                "feeling down": "I'm here for you. Remember, it's okay to feel sad sometimes. Maybe try writing about it in your journal.",
+                "anxious": "Take a deep breath. Inhale, hold, exhale. You might find the breathingexercise helpful.",
+                "happy": "That's wonderful! Embrace the positive energy and spread it!",
+                "purpose": "Everyone has a unique journey. Reflect on what brings you joy and fulfillment, even if it takes time.",
+                "motivated": "Stay focused and celebrate small wins. Every step forward counts!"
+            };
+            let response = "I'm here to listen and help. Can you tell me more?";
+            for (let key in aiResponses) {
+                if (userInput.includes(key)) {
+                    response = aiResponses[key];
+                    break;
+                }
+            }
+            document.getElementById("ai-response").innerText = response;
+        }
+        function trackMood(mood) {
+            document.getElementById("mood-status").innerText = `You are feeling ${mood} today.`;
+            localStorage.setItem('mood', mood);
+        }
+        function startGuidedActivity() {
+            const activityResult = document.getElementById('activity-result');
+            activityResult.innerHTML = "Inhale... Hold... Exhale... Repeat for 5 minutes.";
+            setTimeout(() => {
+                activityResult.innerHTML = "Great job! You've completed your breathing exercise.";
+            }, 5000);
+        }
+        function saveJournalEntry() {
+            const entry = document.getElementById('journal-entry').value;
+            if (entry) {
+                localStorage.setItem('journalEntry', entry);
+                document.getElementById('journal-status').innerText = "Journal entry saved!";
+            } else {
+                document.getElementById('journal-status').innerText = "Please write something before saving.";
+            }
+        }
+    </script>
+</body>
+</html>
+
